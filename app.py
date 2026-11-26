@@ -279,6 +279,44 @@ def cantidad_certificados_programa_estado(
             "Cantidad_Aprendices": cantidad,
         }
     )
+    # 10.9. Listado de aprendices por ficha y estado del aprendiz
+@app.route("/api/porEstado/<ficha>/<estado>", methods=["GET"])
+def aprendices_por_ficha_y_estado(ficha, estado):
+    ficha_limpia = ficha.strip()
+    estado_limpio = estado.strip()
+
+    filtro_ficha = (
+        {"$in": [int(ficha_limpia), ficha_limpia]}
+        if ficha_limpia.isdigit()
+        else ficha_limpia
+    )
+
+    filtro = {
+        "FICHA": filtro_ficha,
+        "ESTADO_APRENDIZ": {
+            "$regex": f"^{re.escape(estado_limpio)}$",
+            "$options": "i",
+        },
+    }
+
+    proyeccion = {
+        "_id": 0,
+        "FICHA": 1,
+        "NOMBRE": 1,
+        "PRIMER_APELLIDO": 1,
+        "PROGRAMA": 1,
+        "SEGUNDO_APELLIDO": 1,
+    }
+
+    lista_aprendices = list(aprendices.find(filtro, proyeccion))
+
+    return jsonify(
+        {
+            "Aprendices": lista_aprendices,
+            "Estado de los Aprendices": estado_limpio,
+            "Ficha": ficha_limpia,
+        }
+    )
 
 if __name__ == "__main__":
     app.run(debug=True, use_reloader=False, port=PORT)
