@@ -148,7 +148,9 @@ def cantidad_certificados_por_programa(programa):
             "Programa": programa_respuesta,
         }
     )
-    @app.route("/api/aprendices/estado/<estado>", methods=["GET"])
+   
+# 10.6. Consultar aprendices por estado del aprendiz (sin _id)
+@app.route("/api/aprendices/estado/<estado>", methods=["GET"])
 def aprendices_por_estado(estado):
     estado_limpio = estado.strip()
     filtro = {
@@ -160,10 +162,12 @@ def aprendices_por_estado(estado):
     proyeccion = {
         "_id": 0,
         "FICHA": 1,
+        "NUMERO_DOCUMENTO": 1,
         "NOMBRE": 1,
         "PRIMER_APELLIDO": 1,
         "SEGUNDO_APELLIDO": 1,
         "PROGRAMA": 1,
+        "ESTADO_APRENDIZ": 1,
     }
 
     lista_aprendices = list(aprendices.find(filtro, proyeccion))
