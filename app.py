@@ -79,6 +79,44 @@ def programas_por_nivel(nivel):
             "programas": programas_ordenados,
         }
     )
+    # 10.4. Aprendices certificados por programa (sin _id)
+@app.route("/api/certificados/<programa>", methods=["GET"])
+def aprendices_certificados(programa):
+    programa_limpio = programa.strip()
+    filtro = {
+        "PROGRAMA": {
+            "$regex": f"^{re.escape(programa_limpio)}$",
+            "$options": "i",
+        },
+        "ESTADO_APRENDIZ": {
+            "$regex": "^Certificado$",
+            "$options": "i",
+        },
+    }
+    proyeccion = {
+        "_id": 0,
+        "FICHA": 1,
+        "NOMBRE": 1,
+        "PRIMER_APELLIDO": 1,
+        "SEGUNDO_APELLIDO": 1,
+    }
+
+    lista_aprendices = list(aprendices.find(filtro, proyeccion))
+    ejemplo = aprendices.find_one(
+        {"PROGRAMA": filtro["PROGRAMA"]}, {"PROGRAMA": 1, "_id": 0}
+    )
+    programa_respuesta = (
+        ejemplo["PROGRAMA"]
+        if ejemplo and "PROGRAMA" in ejemplo
+        else programa_limpio
+    )
+
+    return jsonify(
+        {
+            "Aprendices_Certificados": lista_aprendices,
+            "Programa": programa_respuesta,
+        }
+    )
 
 if __name__ == "__main__":
     app.run(debug=True, use_reloader=False, port=PORT)
