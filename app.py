@@ -317,6 +317,38 @@ def aprendices_por_ficha_y_estado(ficha, estado):
             "Ficha": ficha_limpia,
         }
     )
+    # 10.10. Listado sin repetir de programas cuyo nivel de formación es "COMPLEMENTARIA VIRTUAL"
+@app.route("/api/programasComplementariaVirtual", methods=["GET"])
+@app.route("/api/programas/nivel/<nivel>", methods=["GET"])
+def programas_complementaria_virtual(nivel="COMPLEMENTARIA VIRTUAL"):
+    nivel_limpio = nivel.strip()
+    filtro = {
+        "NIVEL_DE_FORMACION": {
+            "$regex": f"^{re.escape(nivel_limpio)}$",
+            "$options": "i",
+        },
+        "PROGRAMA": {"$ne": None},
+    }
+
+    programas = aprendices.distinct("PROGRAMA", filtro)
+    programas_unicos = sorted(
+        list({p.strip() for p in programas if isinstance(p, str) and p.strip()})
+    )
+
+    ejemplo = aprendices.find_one(filtro, {"NIVEL_DE_FORMACION": 1, "_id": 0})
+    nivel_respuesta = (
+        ejemplo["NIVEL_DE_FORMACION"]
+        if ejemplo and "NIVEL_DE_FORMACION" in ejemplo
+        else nivel_limpio
+    )
+
+    return jsonify(
+        {
+            "Nivel de formación": nivel_respuesta,
+            "Total_Programas": len(programas_unicos),
+            "Programas": programas_unicos,
+        }
+    )
 
 if __name__ == "__main__":
     app.run(debug=True, use_reloader=False, port=PORT)
