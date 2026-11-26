@@ -117,38 +117,42 @@ def aprendices_certificados(programa):
             "Programa": programa_respuesta,
         }
     )
-  # 10.5. Cantidad de aprendices certificados por programa
-@app.route("/api/cantidadCertificados/<programa>", methods=["GET"])
-def cantidad_certificados_por_programa(programa):
-    programa_limpio = programa.strip()
+ # 10.5. Aprendices por ficha en estado "Por certificar", ordenados desc por apellido, con límite
+@app.route("/api/porCertificar/<ficha>/<int:limite>", methods=["GET"])
+def aprendices_por_certificar(ficha, limite):
+    ficha_limpia = ficha.strip()
+    filtro_ficha = (
+        {"$in": [int(ficha_limpia), ficha_limpia]}
+        if ficha_limpia.isdigit()
+        else ficha_limpia
+    )
+
     filtro = {
-        "PROGRAMA": {
-            "$regex": f"^{re.escape(programa_limpio)}$",
-            "$options": "i",
-        },
+        "FICHA": filtro_ficha,
         "ESTADO_APRENDIZ": {
-            "$regex": "^Certificado$",
+            "$regex": "^Por certificar$",
             "$options": "i",
         },
     }
 
-    cantidad = aprendices.count_documents(filtro)
-    ejemplo = aprendices.find_one(
-        {"PROGRAMA": filtro["PROGRAMA"]}, {"PROGRAMA": 1, "_id": 0}
-    )
-    programa_respuesta = (
-        ejemplo["PROGRAMA"]
-        if ejemplo and "PROGRAMA" in ejemplo
-        else programa_limpio
+    proyeccion = {
+        "_id": 0,
+        "FICHA": 1,
+        "PROGRAMA": 1,
+        "NUMERO_DOCUMENTO": 1,
+        "IDENTIFICACION": 1,
+        "NOMBRE": 1,
+        "PRIMER_APELLIDO": 1,
+        "SEGUNDO_APELLIDO": 1,
+    }
+
+    resultados = list(
+        aprendices.find(filtro, proyeccion)
+        .sort("PRIMER_APELLIDO", -1)
+        .limit(limite)
     )
 
-    return jsonify(
-        {
-            "Cantidad_Certificados": cantidad,
-            "Programa": programa_respuesta,
-        }
-    )
-   
+    return jsonify({"Cantidad de Aprendices por Certificar": resultados})
 # 10.6. Consultar aprendices/fichas según ESTADO_FICHA (ej. "Terminada por unificación")
 @app.route("/api/estadoFicha/<estado>", methods=["GET"])
 def aprendices_por_estado_ficha(estado):
