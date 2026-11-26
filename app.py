@@ -153,9 +153,9 @@ def aprendices_por_certificar(ficha, limite):
     )
 
     return jsonify({"Cantidad de Aprendices por Certificar": resultados})
-# 10.6. Consultar aprendices/fichas según ESTADO_FICHA (ej. "Terminada por unificación")
+# 10.6. Consultar fichas/aprendices por ESTADO_FICHA (ej. "Terminada por unificación")
 @app.route("/api/estadoFicha/<estado>", methods=["GET"])
-def aprendices_por_estado_ficha(estado):
+def fichas_por_estado(estado):
     estado_limpio = estado.strip()
     filtro = {
         "ESTADO_FICHA": {
@@ -163,16 +163,26 @@ def aprendices_por_estado_ficha(estado):
             "$options": "i",
         }
     }
+
+    fichas_unicas = sorted(
+        [
+            f
+            for f in aprendices.distinct("FICHA", filtro)
+            if f is not None and str(f).strip() != ""
+        ],
+        key=lambda x: str(x),
+    )
+
     proyeccion = {
         "_id": 0,
         "FICHA": 1,
         "ESTADO_FICHA": 1,
         "PROGRAMA": 1,
+        "NIVEL_DE_FORMACION": 1,
         "NUMERO_DOCUMENTO": 1,
         "NOMBRE": 1,
         "PRIMER_APELLIDO": 1,
         "SEGUNDO_APELLIDO": 1,
-        "ESTADO_APRENDIZ": 1,
     }
 
     lista_aprendices = list(aprendices.find(filtro, proyeccion))
@@ -186,11 +196,12 @@ def aprendices_por_estado_ficha(estado):
     return jsonify(
         {
             "Estado_Ficha": estado_respuesta,
-            "Total": len(lista_aprendices),
-            "Aprendices": lista_aprendices,
+            "Total_Fichas": len(fichas_unicas),
+            "Fichas": fichas_unicas,
+            "Total_Registros": len(lista_aprendices),
+            "Registros": lista_aprendices,
         }
     )
-
 
 if __name__ == "__main__":
     app.run(debug=True, use_reloader=False, port=PORT)
