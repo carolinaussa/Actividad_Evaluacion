@@ -202,51 +202,38 @@ def fichas_por_estado(estado):
             "Registros": lista_aprendices,
         }
     )
-    # 10.7. Aprendices por programa y estado del aprendiz (sin _id)
-@app.route("/api/aprendices/<programa>/<estado>", methods=["GET"])
-def aprendices_por_programa_y_estado(programa, estado):
+    # 10.7. Listado de aprendices del programa VISUALIZACION DE DATOS USANDO POWER BI
+@app.route("/api/aprendices/powerbi", methods=["GET"])
+@app.route("/api/aprendices/programa/<programa>", methods=["GET"])
+def aprendices_visualizacion_power_bi(programa="VISUALIZACION DE DATOS USANDO POWER BI"):
     programa_limpio = programa.strip()
-    estado_limpio = estado.strip()
-
     filtro = {
         "PROGRAMA": {
             "$regex": f"^{re.escape(programa_limpio)}$",
             "$options": "i",
-        },
-        "ESTADO_APRENDIZ": {
-            "$regex": f"^{re.escape(estado_limpio)}$",
-            "$options": "i",
-        },
+        }
     }
 
     proyeccion = {
         "_id": 0,
+        "PROGRAMA": 1,
         "FICHA": 1,
-        "NUMERO_DOCUMENTO": 1,
         "NOMBRE": 1,
         "PRIMER_APELLIDO": 1,
         "SEGUNDO_APELLIDO": 1,
-        "PROGRAMA": 1,
-        "ESTADO_APRENDIZ": 1,
     }
 
     lista_aprendices = list(aprendices.find(filtro, proyeccion))
-    ejemplo = aprendices.find_one(filtro, {"PROGRAMA": 1, "ESTADO_APRENDIZ": 1, "_id": 0})
+    ejemplo = aprendices.find_one(filtro, {"PROGRAMA": 1, "_id": 0})
     programa_respuesta = (
         ejemplo["PROGRAMA"]
         if ejemplo and "PROGRAMA" in ejemplo
         else programa_limpio
     )
-    estado_respuesta = (
-        ejemplo["ESTADO_APRENDIZ"]
-        if ejemplo and "ESTADO_APRENDIZ" in ejemplo
-        else estado_limpio
-    )
 
     return jsonify(
         {
             "Programa": programa_respuesta,
-            "Estado_Aprendiz": estado_respuesta,
             "Total": len(lista_aprendices),
             "Aprendices": lista_aprendices,
         }
