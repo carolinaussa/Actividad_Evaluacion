@@ -117,7 +117,7 @@ def aprendices_certificados(programa):
             "Programa": programa_respuesta,
         }
     )
-    # 10.5. Cantidad de aprendices certificados por programa
+  # 10.5. Cantidad de aprendices certificados por programa
 @app.route("/api/cantidadCertificados/<programa>", methods=["GET"])
 def cantidad_certificados_por_programa(programa):
     programa_limpio = programa.strip()
@@ -149,12 +149,12 @@ def cantidad_certificados_por_programa(programa):
         }
     )
    
-# 10.6. Consultar aprendices por estado del aprendiz (sin _id)
-@app.route("/api/aprendices/estado/<estado>", methods=["GET"])
-def aprendices_por_estado(estado):
+# 10.6. Consultar aprendices/fichas según ESTADO_FICHA (ej. "Terminada por unificación")
+@app.route("/api/estadoFicha/<estado>", methods=["GET"])
+def aprendices_por_estado_ficha(estado):
     estado_limpio = estado.strip()
     filtro = {
-        "ESTADO_APRENDIZ": {
+        "ESTADO_FICHA": {
             "$regex": f"^{re.escape(estado_limpio)}$",
             "$options": "i",
         }
@@ -162,29 +162,31 @@ def aprendices_por_estado(estado):
     proyeccion = {
         "_id": 0,
         "FICHA": 1,
+        "ESTADO_FICHA": 1,
+        "PROGRAMA": 1,
         "NUMERO_DOCUMENTO": 1,
         "NOMBRE": 1,
         "PRIMER_APELLIDO": 1,
         "SEGUNDO_APELLIDO": 1,
-        "PROGRAMA": 1,
         "ESTADO_APRENDIZ": 1,
     }
 
     lista_aprendices = list(aprendices.find(filtro, proyeccion))
-    ejemplo = aprendices.find_one(filtro, {"ESTADO_APRENDIZ": 1, "_id": 0})
+    ejemplo = aprendices.find_one(filtro, {"ESTADO_FICHA": 1, "_id": 0})
     estado_respuesta = (
-        ejemplo["ESTADO_APRENDIZ"]
-        if ejemplo and "ESTADO_APRENDIZ" in ejemplo
+        ejemplo["ESTADO_FICHA"]
+        if ejemplo and "ESTADO_FICHA" in ejemplo
         else estado_limpio
     )
 
     return jsonify(
         {
-            "Estado": estado_respuesta,
+            "Estado_Ficha": estado_respuesta,
             "Total": len(lista_aprendices),
             "Aprendices": lista_aprendices,
         }
     )
+
 
 if __name__ == "__main__":
     app.run(debug=True, use_reloader=False, port=PORT)
