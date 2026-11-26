@@ -148,6 +148,39 @@ def cantidad_certificados_por_programa(programa):
             "Programa": programa_respuesta,
         }
     )
+    @app.route("/api/aprendices/estado/<estado>", methods=["GET"])
+def aprendices_por_estado(estado):
+    estado_limpio = estado.strip()
+    filtro = {
+        "ESTADO_APRENDIZ": {
+            "$regex": f"^{re.escape(estado_limpio)}$",
+            "$options": "i",
+        }
+    }
+    proyeccion = {
+        "_id": 0,
+        "FICHA": 1,
+        "NOMBRE": 1,
+        "PRIMER_APELLIDO": 1,
+        "SEGUNDO_APELLIDO": 1,
+        "PROGRAMA": 1,
+    }
+
+    lista_aprendices = list(aprendices.find(filtro, proyeccion))
+    ejemplo = aprendices.find_one(filtro, {"ESTADO_APRENDIZ": 1, "_id": 0})
+    estado_respuesta = (
+        ejemplo["ESTADO_APRENDIZ"]
+        if ejemplo and "ESTADO_APRENDIZ" in ejemplo
+        else estado_limpio
+    )
+
+    return jsonify(
+        {
+            "Estado": estado_respuesta,
+            "Total": len(lista_aprendices),
+            "Aprendices": lista_aprendices,
+        }
+    )
 
 if __name__ == "__main__":
     app.run(debug=True, use_reloader=False, port=PORT)
