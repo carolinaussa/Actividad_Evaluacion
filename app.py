@@ -238,6 +238,47 @@ def aprendices_visualizacion_power_bi(programa="VISUALIZACION DE DATOS USANDO PO
             "Aprendices": lista_aprendices,
         }
     )
+    # 10.8. Cantidad de aprendices certificados en VISUALIZACION DE DATOS USANDO POWER BI
+@app.route("/api/cantidadCertificados/powerbi", methods=["GET"])
+@app.route("/api/cantidadCertificados/<programa>/<estado>", methods=["GET"])
+def cantidad_certificados_programa_estado(
+    programa="VISUALIZACION DE DATOS USANDO POWER BI",
+    estado="Certificado",
+):
+    programa_limpio = programa.strip()
+    estado_limpio = estado.strip()
+
+    filtro = {
+        "PROGRAMA": {
+            "$regex": f"^{re.escape(programa_limpio)}$",
+            "$options": "i",
+        },
+        "ESTADO_APRENDIZ": {
+            "$regex": f"^{re.escape(estado_limpio)}$",
+            "$options": "i",
+        },
+    }
+
+    cantidad = aprendices.count_documents(filtro)
+    ejemplo = aprendices.find_one(filtro, {"PROGRAMA": 1, "ESTADO_APRENDIZ": 1, "_id": 0})
+    programa_respuesta = (
+        ejemplo["PROGRAMA"]
+        if ejemplo and "PROGRAMA" in ejemplo
+        else programa_limpio
+    )
+    estado_respuesta = (
+        ejemplo["ESTADO_APRENDIZ"]
+        if ejemplo and "ESTADO_APRENDIZ" in ejemplo
+        else estado_limpio
+    )
+
+    return jsonify(
+        {
+            "Programa": programa_respuesta,
+            "Estado_Aprendiz": estado_respuesta,
+            "Cantidad_Aprendices": cantidad,
+        }
+    )
 
 if __name__ == "__main__":
     app.run(debug=True, use_reloader=False, port=PORT)
