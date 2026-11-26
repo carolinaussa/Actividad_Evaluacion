@@ -117,6 +117,37 @@ def aprendices_certificados(programa):
             "Programa": programa_respuesta,
         }
     )
+    # 10.5. Cantidad de aprendices certificados por programa
+@app.route("/api/cantidadCertificados/<programa>", methods=["GET"])
+def cantidad_certificados_por_programa(programa):
+    programa_limpio = programa.strip()
+    filtro = {
+        "PROGRAMA": {
+            "$regex": f"^{re.escape(programa_limpio)}$",
+            "$options": "i",
+        },
+        "ESTADO_APRENDIZ": {
+            "$regex": "^Certificado$",
+            "$options": "i",
+        },
+    }
+
+    cantidad = aprendices.count_documents(filtro)
+    ejemplo = aprendices.find_one(
+        {"PROGRAMA": filtro["PROGRAMA"]}, {"PROGRAMA": 1, "_id": 0}
+    )
+    programa_respuesta = (
+        ejemplo["PROGRAMA"]
+        if ejemplo and "PROGRAMA" in ejemplo
+        else programa_limpio
+    )
+
+    return jsonify(
+        {
+            "Cantidad_Certificados": cantidad,
+            "Programa": programa_respuesta,
+        }
+    )
 
 if __name__ == "__main__":
     app.run(debug=True, use_reloader=False, port=PORT)
